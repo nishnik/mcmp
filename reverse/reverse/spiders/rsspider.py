@@ -1,5 +1,5 @@
-from scrapy.spider import Spider
-from scrapy.selector import Selector
+from scrapy.spider import BaseSpider
+from scrapy.selector import HtmlXPathSelector
 from reverse.items import ReverseItem
 from scrapy.http import Request
 import pickle
@@ -54,7 +54,7 @@ import re
 #         return items
 
 
-class MySpider(Spider):
+class MySpider(BaseSpider):
     """
     Scrapy code for scraping the research areas of the various professors
     Usage :
@@ -70,20 +70,21 @@ class MySpider(Spider):
 
     def parse(self, response):
 
-        sel = Selector(response)
-        titles = sel.xpath('//*[@id="contents"]/fieldset')
+        sel = HtmlXPathSelector(response)
+        titles = sel.select('//*[@id="contents"]/fieldset')
         items = []
         item = ReverseItem()
         item["title"] = response.url
-        item["field"] = titles[2].xpath('.//ul/li/text()').extract()
-
-        header_txt = titles[0].xpath("string((.//table/tr/td[2]))")[0].extract()
+        item["field"] = titles[2].select('.//ul/li/text()').extract()
+	image = sel.select('.//@src').extract()[-1] # luckily the last image is the one we need
+        item["image"] = "http://www.iitkgp.ac.in" + image
+        header_txt = titles[0].select("string((.//table/tr/td[2]))")[0].extract()
         re_year = re.compile('\d{4,4}')  # Match four digits
         re_dept = re.compile('Professor,[\s\w&]*')
         item["year"] = re_year.findall(header_txt)[0]
         item["dept"] = re_dept.findall(header_txt)[0].split('\n')[0].lstrip('Professor,').lstrip().rstrip()
 
-        name = str((titles[0].xpath("string((.//table/tr/td[2]//text())[1])").extract())[0])
+        name = str((titles[0].select("string((.//table/tr/td[2]//text())[1])").extract())[0])
         item["name"] = name.lstrip().rstrip()
         items.append(item)
         return items

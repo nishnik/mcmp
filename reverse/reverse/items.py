@@ -8,7 +8,7 @@
 import scrapy
 from scrapy.item import Item, Field
 
-class ReverseItem(scrapy.Item):
+class ReverseItem(Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     name = Field()
@@ -16,3 +16,4 @@ class ReverseItem(scrapy.Item):
     field = Field()
     dept = Field()
     year = Field()
+    image = Field()
